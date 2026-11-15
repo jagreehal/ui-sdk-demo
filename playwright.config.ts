@@ -5,6 +5,8 @@ import { defineConfig, devices } from "@playwright/test"
 const BASE_PATH = "/ui-sdk-demo/"
 const PORT = 4377
 const CI = !!process.env.CI
+// BASE_URL=https://jagreehal.github.io/ui-sdk-demo/ runs the same stories against the live site, with no local server.
+const LIVE = process.env.BASE_URL
 
 export default defineConfig({
   testDir: "./tests",
@@ -16,11 +18,15 @@ export default defineConfig({
   reporter: [
     ["list"],
     ["html", { open: "never" }],
-    ["executable-stories-playwright/reporter", { formats: ["html"], outputDir: path.join(import.meta.dirname, "docs/report") }],
+    ["executable-stories-playwright/reporter", {
+        formats: ["html"],
+        outputDir: path.join(import.meta.dirname, "docs/report"),
+        html: { title: "ui-sdk-demo · Executable stories", searchable: true },
+      },],
   ],
   use: {
     ...devices["Desktop Chrome"],
-    baseURL: `http://localhost:${PORT}${BASE_PATH}`,
+    baseURL: LIVE ?? `http://localhost:${PORT}${BASE_PATH}`,
     viewport: { width: 1280, height: 800 },
     trace: "on-first-retry",
     screenshot: "only-on-failure",
@@ -30,10 +36,12 @@ export default defineConfig({
   },
   expect: { timeout: 7_500 },
   timeout: 60_000,
-  webServer: {
-    command: `npm run pages && vite preview --outDir docs --port ${PORT} --strictPort --base ${BASE_PATH}`,
-    url: `http://localhost:${PORT}${BASE_PATH}`,
-    reuseExistingServer: !CI,
-    timeout: 120_000,
-  },
+  webServer: LIVE
+    ? undefined
+    : {
+        command: `npm run pages && vite preview --outDir docs --port ${PORT} --strictPort --base ${BASE_PATH}`,
+        url: `http://localhost:${PORT}${BASE_PATH}`,
+        reuseExistingServer: !CI,
+        timeout: 120_000,
+      },
 })

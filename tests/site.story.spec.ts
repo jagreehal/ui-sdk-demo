@@ -13,8 +13,10 @@ test("every demo linked from the landing page opens without errors", async ({ la
   story.init(testInfo)
   story.given("the landing page")
   await landingPage.goto()
-  const demos = await landingPage.demos()
-  expect(demos.length).toBeGreaterThanOrEqual(6)
+  // The stories report is written by this very run, so it can't be visited yet; CI publishes it after the run.
+  const demos = (await landingPage.demos()).filter((demo) => !new URL(demo.url).pathname.startsWith("/ui-sdk-demo/report/"))
+  story.note("The Executable stories link is skipped: this run is what writes the report.")
+  expect(demos.length).toBeGreaterThanOrEqual(5)
   story.table({ label: "Demos", columns: ["Demo", "Path"], rows: demos.map((demo) => [demo.name, new URL(demo.url).pathname]) })
   story.when("each demo is opened in turn")
   for (const demo of demos) {

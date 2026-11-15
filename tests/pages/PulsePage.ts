@@ -53,6 +53,13 @@ export class PulsePage {
     return this.page.evaluate(() => location.hash)
   }
 
+  /** One track of one pattern as the share link encodes it: 16 steps as 4 hex digits, step 1 in the lowest bit. */
+  async linkedTrack(pattern: "A" | "B" | "C" | "D", row: number) {
+    const params = new URLSearchParams((await this.shareHash()).slice(1))
+    const segment = params.get("p")?.split(".")["ABCD".indexOf(pattern)] ?? ""
+    return segment.slice(row * 4, row * 4 + 4)
+  }
+
   /** The brand token and what two components actually paint with it. */
   async paintedAccent() {
     return this.page.evaluate(() => ({
